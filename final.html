@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>TODO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --main-gradient: linear-gradient(120deg, #a18cd1 0%, #fbc2eb 100%);
+      --hero-dark: linear-gradient(120deg, #2b2e4a 0%, #22223b 100%);
+      --hero-light: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+      --primary: #5f4dee;
+      --primary-hover: #4a39c7;
+      --card-dark: #23243a;
+      --card-light: #fff;
+      --bg-dark: #181824;
+      --bg-light: #fafaff;
+      --text-dark: #f3f3f3;
+      --text-light: #22223b;
+      --subtext-dark: #aaa;
+      --subtext-light: #888;
+      --border-dark: #39395f;
+      --border-light: #e3e3e3;
+      --circle-done: #5f4dee;
+      --circle-border: #bbb;
+      --shadow: 0 8px 32px rgba(44, 44, 84, 0.18);
+    }
+    [data-theme="dark"] {
+      --hero-bg: var(--hero-dark);
+      --bg: var(--bg-dark);
+      --card: var(--card-dark);
+      --text: var(--text-dark);
+      --subtext: var(--subtext-dark);
+      --border: var(--border-dark);
+    }
+    [data-theme="light"] {
+      --hero-bg: var(--hero-light);
+      --bg: var(--bg-light);
+      --card: var(--card-light);
+      --text: var(--text-light);
+      --subtext: var(--subtext-light);
+      --border: var(--border-light);
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Josefin Sans', 'Noto Sans JP';
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.4s, color 0.4s;
+    }
+    .hero {
+      width: 100vw;
+      min-height: 320px;
+      background: var(--hero-bg);
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 48px;
+      transition: background 0.4s;
+    }
+    .hero[data-theme="dark"] {
+      background-image: linear-gradient(120deg, #2b2e4a 0%, #22223b 100%), url('https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=800&q=80');
+      background-blend-mode: multiply;
+    }
+    .hero[data-theme="light"] {
+      background-image: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%), url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80');
+      background-blend-mode: lighten;
+    }
+    .todo-title {
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      color: #fff;
+      margin-bottom: 32px;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    }
+    .theme-switch {
+      position: absolute;
+      top: 32px;
+      right: 48px;
+      font-size: 2rem;
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      z-index: 2;
+      transition: color 0.2s;
+    }
+    .theme-switch:hover {
+      color: #ffe066;
+    }
+    .create-btn {
+      margin: 0 auto;
+      margin-bottom: 40px;
+      display: block;
+      width: 90vw;
+      max-width: 480px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      padding: 24px 0;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: background 0.2s;
+    }
+    .create-btn:hover {
+      background: var(--primary-hover);
+    }
+    .modal-bg {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 10;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-bg.active {
+      display: flex;
+    }
+    .modal {
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 32px 24px 24px 24px;
+      min-width: 320px;
+      max-width: 90vw;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      animation: fadeIn 0.3s;
+    }
+    .modal input[type="text"] {
+      font-size: 1.1em;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .modal select {
+      font-size: 1em;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .modal .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .modal .modal-actions button {
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+      transition: background 0.2s;
+    }
+    .modal .modal-actions .cancel-btn {
+      background: #bbb;
+      color: #fff;
+    }
+    .modal .modal-actions .cancel-btn:hover {
+      background: #888;
+    }
+    .modal .modal-actions .add-btn:hover {
+      background: var(--primary-hover);
+    }
+    .todo-card {
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      margin: -60px auto 0 auto;
+      padding: 0;
+      width: 90vw;
+      max-width: 480px;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: background 0.4s;
+    }
+    .todo-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+    }
+    .todo-item {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      min-height: 60px;
+      font-size: 1.1em;
+      background: none;
+      transition: background 0.2s;
+    }
+    .todo-item:last-child {
+      border-bottom: none;
+    }
+    .circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--circle-border);
+      margin-right: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: none;
+      transition: border 0.2s, background 0.2s;
+    }
+    .circle.checked {
+      background: var(--circle-done);
+      border: 2px solid var(--circle-done);
+    }
+    .circle.checked::after {
+      content: '\2713';
+      color: #fff;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+    .todo-text {
+      flex: 1;
+      color: var(--text);
+      word-break: break-all;
+      font-size: 1.1em;
+      transition: color 0.2s;
+    }
+    .todo-item.completed .todo-text {
+      text-decoration: line-through;
+      color: var(--subtext);
+    }
+    .todo-meta {
+      font-size: 0.85em;
+      color: var(--subtext);
+      margin-left: 8px;
+      min-width: 80px;
+    }
+    .delete-x {
+      font-size: 1.5em;
+      color: var(--subtext);
+      background: none;
+      border: none;
+      margin-left: 18px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .delete-x:hover {
+      color: #ff6b6b;
+    }
+    .todo-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px 12px 24px;
+      font-size: 1em;
+      color: var(--subtext);
+      background: none;
+    }
+    .todo-footer .clear-btn {
+      background: none;
+      border: none;
+      color: var(--subtext);
+      font-size: 1em;
+      cursor: pointer;
+      text-decoration: underline;
+      margin-left: 12px;
+      transition: color 0.2s;
+    }
+    .todo-footer .clear-btn:hover {
+      color: #ff6b6b;
+    }
+    .filter-bar {
+      margin: 32px auto 0 auto;
+      width: 90vw;
+      max-width: 480px;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      padding: 18px 0 12px 0;
+      font-size: 1.2em;
+      color: var(--subtext);
+      transition: background 0.4s, color 0.4s;
+    }
+    .filter-btn {
+      background: none;
+      border: none;
+      color: inherit;
+      font-size: 1.1em;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: color 0.2s;
+    }
+    .filter-btn.active {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+    @media (max-width: 600px) {
+      .hero {
+        min-height: 180px;
+        padding-top: 24px;
+      }
+      .todo-title {
+        font-size: 2.1rem;
+        margin-bottom: 18px;
+      }
+      .create-btn {
+        font-size: 1.1rem;
+        padding: 16px 0;
+      }
+      .todo-card, .filter-bar {
+        max-width: 98vw;
+        min-width: 0;
+      }
+      .modal {
+        min-width: 0;
+        max-width: 98vw;
+        padding: 18px 8vw 18px 8vw;
+      }
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <div class="hero" id="hero">
+    <span class="todo-title">TODO</span>
+    <button class="theme-switch" id="themeSwitch" title="テーマ切替">🌙</button>
+    <button class="create-btn" id="openModalBtn">Create a new todo</button>
+  </div>
+  <div class="modal-bg" id="modalBg">
+    <form class="modal" id="modalForm" onsubmit="return false;">
+      <input type="text" id="modalTaskInput" placeholder="New todo..." maxlength="60" required>
+      <select id="modalCategoryInput">
+        <option value="">カテゴリ選択</option>
+        <option value="仕事">仕事</option>
+        <option value="勉強">勉強</option>
+        <option value="運動">運動</option>
+        <option value="買い物">買い物</option>
+        <option value="その他">その他</option>
+      </select>
+      <div class="modal-actions">
+        <button type="button" class="cancel-btn" id="closeModalBtn">Cancel</button>
+        <button type="submit" class="add-btn">Create</button>
+      </div>
+    </form>
+  </div>
+  <div class="todo-card">
+    <ul class="todo-list" id="taskList"></ul>
+    <div class="todo-footer">
+      <span id="itemsLeft"></span>
+      <button class="clear-btn" id="clearCompletedBtn">Clear Completed</button>
+    </div>
+  </div>
+  <div class="filter-bar">
+    <button class="filter-btn active" id="filterAll" onclick="setFilter('all')">All</button>
+    <button class="filter-btn" id="filterActive" onclick="setFilter('active')">Active</button>
+    <button class="filter-btn" id="filterCompleted" onclick="setFilter('completed')">Completed</button>
+  </div>
+  <script>
+    let tasks = [];
+    let filter = 'all';
+    const themeSwitch = document.getElementById('themeSwitch');
+    const hero = document.getElementById('hero');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const modalBg = document.getElementById('modalBg');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const modalForm = document.getElementById('modalForm');
+    const modalTaskInput = document.getElementById('modalTaskInput');
+    const modalCategoryInput = document.getElementById('modalCategoryInput');
+    const taskList = document.getElementById('taskList');
+    const itemsLeft = document.getElementById('itemsLeft');
+    const clearCompletedBtn = document.getElementById('clearCompletedBtn');
+    // テーマ初期化
+    function setTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      hero.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      themeSwitch.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+    themeSwitch.onclick = function() {
+      const current = document.body.getAttribute('data-theme') || 'light';
+      setTheme(current === 'light' ? 'dark' : 'light');
+    };
+    // モーダル制御
+    openModalBtn.onclick = () => {
+      modalBg.classList.add('active');
+      modalTaskInput.focus();
+    };
+    closeModalBtn.onclick = () => {
+      modalBg.classList.remove('active');
+      modalForm.reset();
+    };
+    modalBg.onclick = (e) => {
+      if (e.target === modalBg) {
+        modalBg.classList.remove('active');
+        modalForm.reset();
+      }
+    };
+    // タスク保存・復元
+    window.onload = function() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      setTheme(savedTheme);
+      const saved = localStorage.getItem('tasks2q');
+      if (saved) tasks = JSON.parse(saved);
+      renderTasks();
+    };
+    // タスク追加
+    modalForm.onsubmit = function() {
+      const text = modalTaskInput.value.trim();
+      const category = modalCategoryInput.value;
+      if (!text) return;
+      const now = new Date();
+      const task = {
+        text,
+        category: category || '未分類',
+        timestamp: now.toLocaleString('ja-JP'),
+        completed: false
+      };
+      tasks.push(task);
+      saveTasks();
+      renderTasks();
+      modalBg.classList.remove('active');
+      modalForm.reset();
+    };
+    // タスク完了切替
+    function toggleTask(index) {
+      tasks[index].completed = !tasks[index].completed;
+      saveTasks();
+      renderTasks();
+    }
+    // タスク削除
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      saveTasks();
+      renderTasks();
+    }
+    // フィルタ切替
+    function setFilter(f) {
+      filter = f;
+      document.getElementById('filterAll').classList.toggle('active', filter==='all');
+      document.getElementById('filterActive').classList.toggle('active', filter==='active');
+      document.getElementById('filterCompleted').classList.toggle('active', filter==='completed');
+      renderTasks();
+    }
+    // 完了タスク一括削除
+    clearCompletedBtn.onclick = function() {
+      tasks = tasks.filter(t => !t.completed);
+      saveTasks();
+      renderTasks();
+    };
+    // タスクリスト描画
+    function renderTasks() {
+      taskList.innerHTML = '';
+      let filtered = tasks;
+      if (filter === 'active') filtered = tasks.filter(t => !t.completed);
+      if (filter === 'completed') filtered = tasks.filter(t => t.completed);
+      filtered.forEach((task, i) => {
+        const li = document.createElement('li');
+        li.className = 'todo-item' + (task.completed ? ' completed' : '');
+        li.innerHTML = `
+          <span class="circle${task.completed ? ' checked' : ''}" onclick="toggleTask(${i})"></span>
+          <span class="todo-text">${task.text}</span>
+          <span class="todo-meta">
+            <span>${task.category}</span> <span>${task.timestamp}</span>
+          </span>
+          <button class="delete-x" onclick="deleteTask(${i})">&times;</button>
+        `;
+        taskList.appendChild(li);
+      });
+      // items left
+      const left = tasks.filter(t => !t.completed).length;
+      itemsLeft.textContent = `${left} item${left !== 1 ? 's' : ''} left`;
+    }
+    // 保存
+    function saveTasks() {
+      localStorage.setItem('tasks2q', JSON.stringify(tasks));
+    }
+  </script>
+</body>
+</html>
