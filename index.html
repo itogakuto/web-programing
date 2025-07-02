@@ -354,6 +354,27 @@
         max-width: 98vw;
         min-width: 0;
       }
+      .filter-bar {
+        gap: 20px;
+        padding: 16px 0 10px 0;
+        font-size: 1.1em;
+      }
+      .filter-btn {
+        font-size: 1em;
+        padding: 8px 12px;
+        border-radius: 6px;
+        background: rgba(95, 77, 238, 0.1);
+        border: 1px solid transparent;
+        transition: all 0.2s;
+      }
+      .filter-btn:hover {
+        background: rgba(95, 77, 238, 0.2);
+      }
+      .filter-btn.active {
+        background: var(--primary);
+        color: #fff;
+        text-decoration: none;
+      }
       .modal {
         min-width: 0;
         max-width: 98vw;
@@ -372,6 +393,16 @@
       .todo-title {
         font-size: 1.8rem;
         margin-bottom: 16px;
+      }
+      .filter-bar {
+        gap: 12px;
+        padding: 14px 0 8px 0;
+        font-size: 1em;
+      }
+      .filter-btn {
+        font-size: 0.9em;
+        padding: 6px 10px;
+        border-radius: 5px;
       }
     }
   </style>
