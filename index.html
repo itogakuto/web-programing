@@ -310,7 +310,7 @@
       box-shadow: var(--shadow);
       display: flex;
       justify-content: center;
-      gap: 32px;
+      gap: clamp(8px, 5vw, 32px);
       padding: 18px 0 12px 0;
       font-size: 1.2em;
       color: var(--subtext);
@@ -355,9 +355,7 @@
         min-width: 0;
       }
       .filter-bar {
-        gap: 20px;
-        padding: 16px 0 10px 0;
-        font-size: 1.1em;
+        gap: clamp(6px, 6vw, 20px);
       }
       .filter-btn {
         font-size: 1em;
@@ -390,15 +388,10 @@
         font-size: 1.8rem;
         margin-bottom: 16px;
       }
+    }
+    @media (max-width: 400px) {
       .filter-bar {
-        gap: 20px;
-        padding: 14px 0 8px 0;
-        font-size: 1em;
-      }
-      .filter-btn {
-        font-size: 0.9em;
-        padding: 6px 10px;
-        border-radius: 5px;
+        gap: clamp(4px, 8vw, 14px);
       }
     }
   </style>
