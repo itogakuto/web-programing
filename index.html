@@ -84,9 +84,8 @@
       text-shadow: 0 2px 16px rgba(0,0,0,0.18);
     }
     .theme-switch {
-      position: absolute;
-      top: 32px;
-      right: 48px;
+      display: block;
+      margin: 0 auto 20px auto;
       font-size: 0.9rem;
       font-weight: 600;
       background: rgba(255, 255, 255, 0.2);
@@ -96,7 +95,7 @@
       cursor: pointer;
       z-index: 2;
       transition: all 0.3s ease;
-      padding: 8px 16px;
+      padding: 10px 16px;
       backdrop-filter: blur(10px);
       letter-spacing: 0.5px;
     }
@@ -341,6 +340,7 @@
       }
       .theme-switch {
         margin: 0 auto 12px auto;
+        right: 20px;
         font-size: 0.9rem;
         padding: 10px 16px;
         border-radius: 8px;
@@ -394,13 +394,24 @@
         gap: clamp(4px, 8vw, 14px);
       }
     }
+    .hero-btns-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      gap: 12px;
+    }
   </style>
 </head>
 <body data-theme="light">
   <div class="hero" id="hero">
     <span class="todo-title">TODO</span>
-    <button class="theme-switch" id="themeSwitch" title="テーマ切替">Light</button>
-    <button class="create-btn" id="openModalBtn">Create a new todo</button>
+    <div class="hero-btns-right">
+      <button class="create-btn" id="openModalBtn">Create a new todo</button>
+      <button class="theme-switch" id="themeSwitch" title="テーマ切替">Light</button>
+    </div>
   </div>
   <div class="modal-bg" id="modalBg">
     <form class="modal" id="modalForm" onsubmit="return false;">
