@@ -66,12 +66,12 @@
       transition: background 0.4s;
     }
     .hero[data-theme="dark"] {
-      background-image: linear-gradient(120deg, #2b2e4a 0%, #22223b 100%), url('https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=800&q=80');
-      background-blend-mode: multiply;
+      background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80');
+      background-blend-mode: normal;
     }
     .hero[data-theme="light"] {
-      background-image: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%), url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80');
-      background-blend-mode: lighten;
+      background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80');
+      background-blend-mode: normal;
     }
     .todo-title {
       font-size: 3rem;
@@ -85,16 +85,23 @@
       position: absolute;
       top: 32px;
       right: 48px;
-      font-size: 2rem;
-      background: none;
-      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
       color: #fff;
       cursor: pointer;
       z-index: 2;
-      transition: color 0.2s;
+      transition: all 0.3s ease;
+      padding: 8px 16px;
+      backdrop-filter: blur(10px);
+      letter-spacing: 0.5px;
     }
     .theme-switch:hover {
-      color: #ffe066;
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-1px);
     }
     .create-btn {
       margin: 0 auto;
@@ -330,6 +337,13 @@
         font-size: 2.1rem;
         margin-bottom: 18px;
       }
+      .theme-switch {
+        top: 16px;
+        right: 16px;
+        font-size: 0.8rem;
+        padding: 6px 12px;
+        border-radius: 6px;
+      }
       .create-btn {
         font-size: 1.1rem;
         padding: 16px 0;
@@ -344,12 +358,26 @@
         padding: 18px 8vw 18px 8vw;
       }
     }
+    
+    @media (max-width: 400px) {
+      .theme-switch {
+        top: 12px;
+        right: 12px;
+        font-size: 0.75rem;
+        padding: 5px 10px;
+        border-radius: 5px;
+      }
+      .todo-title {
+        font-size: 1.8rem;
+        margin-bottom: 16px;
+      }
+    }
   </style>
 </head>
 <body data-theme="light">
   <div class="hero" id="hero">
     <span class="todo-title">TODO</span>
-    <button class="theme-switch" id="themeSwitch" title="テーマ切替">🌙</button>
+    <button class="theme-switch" id="themeSwitch" title="テーマ切替">Light</button>
     <button class="create-btn" id="openModalBtn">Create a new todo</button>
   </div>
   <div class="modal-bg" id="modalBg">
@@ -400,7 +428,7 @@
       document.body.setAttribute('data-theme', theme);
       hero.setAttribute('data-theme', theme);
       localStorage.setItem('theme', theme);
-      themeSwitch.textContent = theme === 'dark' ? '☀️' : '🌙';
+      themeSwitch.textContent = theme === 'dark' ? 'Change to Light' : 'Change to Dark';
     }
     themeSwitch.onclick = function() {
       const current = document.body.getAttribute('data-theme') || 'light';
