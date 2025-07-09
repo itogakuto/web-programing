@@ -212,12 +212,13 @@
       }
     });
 
-    // カメラ起動
+    // カメラ起動（初期は外カメラ）
     openCameraBtn.addEventListener('click', async () => {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         return alert('カメラを使用できません');
       }
-      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // 背面カメラを優先
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
       video.srcObject = stream;
       video.style.display = 'block';
       captureBtn.style.display = 'inline-block';
