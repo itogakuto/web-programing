@@ -19,8 +19,10 @@
     .cancel-btn { background: #bbb; }
     .cancel-btn:hover { background: #999; }
     ul { list-style: none; padding-left: 0; }
-    li { margin-bottom: 10px; font-size: 1em; }
-    .delete-btn { margin-left: 10px; color: red; cursor: pointer; background: none; border: none; font-size: 1em; }
+    li { margin-bottom: 10px; font-size: 1em; display: flex; align-items: center; }
+    li.completed { text-decoration: line-through; color: #999; }
+    .delete-btn { margin-left: auto; color: red; cursor: pointer; background: none; border: none; font-size: 1em; }
+    .status-checkbox { margin-right: 8px; }
     .modal-bg { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 10; }
     .modal { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.2); width: 90%; max-width: 400px; }
     #camera-preview { display: none; width: 100%; max-width: 300px; margin-top: 10px; border-radius: 6px; }
@@ -36,11 +38,14 @@
 <body>
   <div class="hero">たんぼメモ</div>
   <div class="container">
+    <!-- 田植え日設定 -->
     <section>
       <h2>田植え日を設定</h2>
       <input type="date" id="planting-date">
       <button onclick="setPlantingDate()">設定</button>
     </section>
+
+    <!-- 毎日の作業 -->
     <section>
       <h2>毎日の作業</h2>
       <ul id="routine-tasks">
@@ -49,6 +54,7 @@
         <li><input type="checkbox"> 地面の露出確認</li>
         <li><input type="checkbox"> 葉の異常チェック（枯れ／変色／斑点）</li>
       </ul>
+      <!-- 備考 -->
       <h3>備考（任意）</h3>
       <textarea id="remarks-text" rows="4" placeholder="今日の様子を記述..."></textarea>
       <div>
@@ -64,17 +70,23 @@
         <button type="button" class="cancel-btn" onclick="clearRemarks()">クリア</button>
       </div>
     </section>
+
+    <!-- 今後の予定 -->
     <section>
       <h2>今後の予定</h2>
       <ul id="event-tasks"></ul>
       <button onclick="openModal()">予定を追加</button>
     </section>
+
+    <!-- カレンダー -->
     <section>
       <h2>カレンダー</h2>
       <div id="upcoming-cards"></div>
       <div id="calendar"></div>
     </section>
   </div>
+
+  <!-- 予定追加モーダル -->
   <div class="modal-bg" id="modalBg">
     <div class="modal">
       <h3>予定の詳細</h3>
@@ -93,17 +105,17 @@
       </div>
     </div>
   </div>
+
   <script>
-    // ローカル保存キー定義
+    // localStorage keys
     const LS_PLANT = 'tanbo_plantingDate';
     const LS_REMARKS = 'tanbo_remarks';
     const LS_REMARKS_PHOTOS = 'tanbo_remarksPhotos';
     const LS_EVENTS = 'tanbo_events';
 
-    // Planting date
+    // Load/set planting date
     function setPlantingDate() {
-      const inp = document.getElementById('planting-date');
-      const v = inp.value;
+      const v = document.getElementById('planting-date').value;
       if (!v) return alert('田植え日を選んでください');
       localStorage.setItem(LS_PLANT, v);
       updateRoutineTasks();
@@ -116,15 +128,14 @@
       }
     }
 
-    // Remarks and photos
+    // Remarks/photos
     const remarksText = document.getElementById('remarks-text');
     const remarksPhoto = document.getElementById('remarks-photo');
     const photoPreview = document.getElementById('photo-preview');
     const openCameraBtn = document.getElementById('open-camera');
     const video = document.getElementById('camera-preview');
     const captureBtn = document.getElementById('capture-btn');
-    let stream;
-    const MAX_IMAGES = 5;
+    let stream; const MAX_IMAGES = 5;
 
     function loadRemarks() {
       const text = localStorage.getItem(LS_REMARKS);
@@ -139,30 +150,22 @@
       alert('備考を保存しました');
     }
     function clearRemarks() {
-      remarksText.value = '';
-      photoPreview.innerHTML = '';
-      localStorage.removeItem(LS_REMARKS);
-      localStorage.removeItem(LS_REMARKS_PHOTOS);
+      remarksText.value = ''; photoPreview.innerHTML = '';
+      localStorage.removeItem(LS_REMARKS); localStorage.removeItem(LS_REMARKS_PHOTOS);
       resetPhotoControls();
     }
     function appendPhoto(src) {
-      const img = document.createElement('img'); img.src = src; img.alt = '備考写真';
-      photoPreview.appendChild(img);
+      const img = document.createElement('img'); img.src = src; img.alt = '備考写真'; photoPreview.appendChild(img);
     }
     function resetPhotoControls() {
       document.getElementById('file-label').style.display = 'inline-block';
-      openCameraBtn.disabled = false;
-      video.style.display = 'none'; captureBtn.style.display = 'none';
+      openCameraBtn.disabled = false; video.style.display = 'none'; captureBtn.style.display = 'none';
       if (stream) stream.getTracks().forEach(t => t.stop());
     }
-
-    // Attach events
     remarksPhoto.addEventListener('change', e => {
       if (photoPreview.childElementCount >= MAX_IMAGES) return alert('画像は1日5枚までです');
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = ev => { appendPhoto(ev.target.result); checkImageLimit(); };
+      const file = e.target.files[0]; if (file) {
+        const reader = new FileReader(); reader.onload = ev => { appendPhoto(ev.target.result); checkImageLimit(); };
         reader.readAsDataURL(file);
       }
     });
@@ -173,129 +176,113 @@
     });
     captureBtn.addEventListener('click', () => {
       const canvas = document.createElement('canvas'); canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
+      canvas.getContext('2d').drawImage(video,0,0);
       const dataUrl = canvas.toDataURL('image/png'); appendPhoto(dataUrl);
-      checkImageLimit(); stream.getTracks().forEach(t => t.stop()); video.style.display = 'none'; captureBtn.style.display = 'none';
+      checkImageLimit(); stream.getTracks().forEach(t=>t.stop()); video.style.display='none'; captureBtn.style.display='none';
     });
     function checkImageLimit() {
-      if (photoPreview.childElementCount >= MAX_IMAGES) {
-        document.getElementById('file-label').style.display = 'none'; openCameraBtn.disabled = true; captureBtn.style.display = 'none';
+      if (photoPreview.childElementCount>=MAX_IMAGES) {
+        document.getElementById('file-label').style.display='none'; openCameraBtn.disabled=true; captureBtn.style.display='none';
       }
     }
 
-    // Events
+    // Events with status
     let eventTasks = [];
     const eventListEl = document.getElementById('event-tasks');
     function loadEvents() {
       eventTasks = JSON.parse(localStorage.getItem(LS_EVENTS) || '[]');
-      eventTasks.forEach(ev => renderEvent(ev));
+      eventTasks.forEach((ev, idx) => renderEvent(ev, idx));
     }
     function saveEvents() {
       localStorage.setItem(LS_EVENTS, JSON.stringify(eventTasks));
     }
-    function addEventTask(task, date, start, end, participant) {
-      const ev = { task, date, start, end, participant };
-      eventTasks.push(ev); saveEvents(); renderEvent(ev); renderCalendar();
+    function addEventTask(task,date,start,end,participant) {
+      const ev = { task,date,start,end,participant,completed:false };
+      eventTasks.push(ev); saveEvents(); renderEvent(ev, eventTasks.length-1); renderCalendar();
     }
-    function renderEvent(ev) {
+    function renderEvent(ev, idx) {
       const li = document.createElement('li');
-      li.textContent = `🕒 ${ev.start}〜${ev.end} ｜ 👥 ${ev.participant} ｜ ${ev.task}（${ev.date}）`;
-      const btn = document.createElement('button'); btn.textContent = '削除'; btn.className='delete-btn';
-      btn.onclick = () => { deleteEvent(ev, li); };
-      li.appendChild(btn); eventListEl.appendChild(li);
+      const checkbox = document.createElement('input');
+      checkbox.type='checkbox'; checkbox.className='status-checkbox';
+      checkbox.checked = ev.completed;
+      checkbox.addEventListener('change', () => toggleEventStatus(idx, li));
+      li.appendChild(checkbox);
+      const text = document.createTextNode(`🕒 ${ev.start}〜${ev.end} ｜ 👥 ${ev.participant} ｜ ${ev.task}（${ev.date}）`);
+      li.appendChild(text);
+      if (ev.completed) li.classList.add('completed');
+      const btn = document.createElement('button'); btn.textContent='削除'; btn.className='delete-btn';
+      btn.onclick = () => deleteEvent(idx, li);
+      li.appendChild(btn);
+      eventListEl.appendChild(li);
     }
-    function deleteEvent(ev, li) {
-      eventTasks = eventTasks.filter(e => e !== ev);
-      saveEvents(); li.remove(); renderCalendar();
+    function toggleEventStatus(idx, li) {
+      eventTasks[idx].completed = !eventTasks[idx].completed;
+      saveEvents();
+      if (eventTasks[idx].completed) li.classList.add('completed'); else li.classList.remove('completed');
+    }
+    function deleteEvent(idx, li) {
+      eventTasks.splice(idx,1); saveEvents(); li.remove(); renderCalendar();
+      eventListEl.innerHTML=''; eventTasks.forEach((ev,i)=>renderEvent(ev,i));
     }
 
     // Modal
-    function openModal() { document.getElementById('modalBg').style.display = 'flex'; }
-    function closeModal() { document.getElementById('modalBg').style.display = 'none'; }
-    function submitEvent() {
+    function openModal(){ document.getElementById('modalBg').style.display='flex'; }
+    function closeModal(){ document.getElementById('modalBg').style.display='none'; }
+    function submitEvent(){
       const t = document.getElementById('event-text').value.trim();
       const d = document.getElementById('event-date').value;
       const s = document.getElementById('start-time').value;
       const e = document.getElementById('end-time').value;
       const p = document.getElementById('participants').value;
-      if (t && d && s && e && p) { addEventTask(t, d, s, e, p); closeModal(); }
+      if (t&&d&&s&&e&&p) { addEventTask(t,d,s,e,p); closeModal(); }
       else alert('すべての項目を入力してください');
     }
-    function addParticipant() {
-      const input = document.getElementById('new-participant'); const name = input.value.trim();
-      if (name) {
-        const opt = document.createElement('option'); opt.value = name; opt.textContent = name;
-        document.getElementById('participants').appendChild(opt); input.value = '';
-      }
+    function addParticipant(){ const input=document.getElementById('new-participant'); const name=input.value.trim();
+      if(name){ const opt=document.createElement('option'); opt.value=name; opt.textContent=name;
+        document.getElementById('participants').appendChild(opt); input.value=''; }
     }
 
     // Calendar
-    function renderCalendar() {
+    function renderCalendar(){
       const cal = document.getElementById('calendar'); cal.innerHTML = '';
-      const today = new Date(), y = today.getFullYear(), m = today.getMonth();
-      const first = new Date(y, m, 1).getDay(); const days = new Date(y, m+1, 0).getDate();
-      ['日','月','火','水','木','金','土'].forEach(d => {
-        const hd = document.createElement('div'); hd.textContent = d; hd.className='calendar-day'; hd.style.fontWeight='bold'; cal.appendChild(hd);
+      const today = new Date(), y=today.getFullYear(), m=today.getMonth();
+      const first=new Date(y,m,1).getDay(), days=new Date(y,m+1,0).getDate();
+      ['日','月','火','水','木','金','土'].forEach(d=>{
+        const hd=document.createElement('div'); hd.textContent=d; hd.className='calendar-day'; hd.style.fontWeight='bold'; cal.appendChild(hd);
       });
-      for (let i=0; i<first; i++) cal.appendChild(document.createElement('div'));
-      for (let d=1; d<=days; d++) {
-        const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const el = document.createElement('div'); el.textContent = d; el.className='calendar-day';
-        if (d === today.getDate()) el.classList.add('today');
-        el.addEventListener('click', e => showDayPopup(e, dateStr)); cal.appendChild(el);
+      for(let i=0;i<first;i++) cal.appendChild(document.createElement('div'));
+      for(let d=1;d<=days;d++){ const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const el=document.createElement('div'); el.textContent=d; el.className='calendar-day';
+        if(d===today.getDate()) el.classList.add('today');
+        el.addEventListener('click',e=>showDayPopup(e,dateStr)); cal.appendChild(el);
       }
       renderUpcoming();
     }
-    function renderUpcoming() {
-      const up = document.getElementById('upcoming-cards'); up.innerHTML = '';
-      const now = new Date();
-      eventTasks.forEach(ev => {
-        const dt = new Date(ev.date);
-        const diff = (dt - now) / (1000*60*60*24);
-        if (diff >= 0 && diff < 7) {
-          const c = document.createElement('div'); c.className = 'card';
-          c.textContent = `${ev.date} ${ev.start}〜${ev.end} ${ev.task}`;
-          up.appendChild(c);
-        }
-      });
-    }
-    function showDayPopup(e, date) {
-      document.querySelectorAll('.popup').forEach(p => p.remove());
-      const pop = document.createElement('div'); pop.className = 'popup';
-      const tasks = eventTasks.filter(ev => ev.date === date);
-      if (tasks.length === 0) pop.textContent = '予定なし';
-      else tasks.forEach(ev => {
-        const p = document.createElement('p'); p.textContent = `${ev.start}〜${ev.end} ${ev.task}`;
-        pop.appendChild(p);
-      });
-      document.body.appendChild(pop);
-      const r = e.target.getBoundingClientRect();
-      pop.style.top = `${r.top - pop.offsetHeight - 10}px`;
-      pop.style.left = `${r.left}px`;
-      setTimeout(() => pop.remove(), 5000);
+    function renderUpcoming(){ const up=document.getElementById('upcoming-cards'); up.innerHTML='';
+      const now=new Date(); eventTasks.forEach(ev=>{ const dt=new Date(ev.date);
+        const diff=(dt-now)/(1000*60*60*24); if(diff>=0&&diff<7){ const c=document.createElement('div'); c.className='card';
+          c.textContent=`${ev.date} ${ev.start}〜${ev.end} ${ev.task}`; up.appendChild(c); }
+      }); }
+    function showDayPopup(e,date){ document.querySelectorAll('.popup').forEach(p=>p.remove());
+      const pop=document.createElement('div'); pop.className='popup'; const tasks=eventTasks.filter(ev=>ev.date===date);
+      if(tasks.length===0) pop.textContent='予定なし'; else tasks.forEach(ev=>{ const p=document.createElement('p'); p.textContent=`${ev.start}〜${ev.end} ${ev.task}`; pop.appendChild(p); });
+      document.body.appendChild(pop); const r=e.target.getBoundingClientRect(); pop.style.top=`${r.top-pop.offsetHeight-10}px`; pop.style.left=`${r.left}px`;
+      setTimeout(()=>pop.remove(),5000);
     }
 
-    // Routine water checkbox
-    function updateRoutineTasks() {
-      const v = localStorage.getItem(LS_PLANT);
-      if (!v) return;
-      const pd = new Date(v), now = new Date();
-      const diff = Math.floor((now - pd) / (1000*60*60*24));
-      let txt = '';
-      if (diff < 0) txt = '未定義（未来の日付です）';
-      else if (diff <= 5) txt = '2〜3cm（田植え〜5日目）';
-      else if (diff <= 14) txt = '3〜5cm（5日目〜2週間）';
-      else txt = '管理者判断（成長進行中）';
-      document.getElementById('cb-water').nextSibling.textContent = ` 水位確認（${txt}）`;
+    // Routine status
+    function updateRoutineTasks(){
+      const v=localStorage.getItem(LS_PLANT); if(!v) return;
+      const pd=new Date(v), now=new Date(); const diff=Math.floor((now-pd)/(1000*60*60*24)); let txt='';
+      if(diff<0) txt='未定義（未来）'; else if(diff<=5) txt='2〜3cm'; else if(diff<=14) txt='3〜5cm'; else txt='管理者判断';
+      document.getElementById('cb-water').nextSibling.textContent=` 水位確認（${txt}）`;
     }
 
     // Init
-    document.addEventListener('DOMContentLoaded', () => {
-      loadPlantingDate();
-      loadRemarks();
-      loadEvents();
-      renderCalendar();
+    document.addEventListener('DOMContentLoaded',()=>{
+      loadPlantingDate(); loadRemarks(); loadEvents(); renderCalendar();
     });
+
   </script>
 </body>
 </html>
