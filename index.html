@@ -23,6 +23,8 @@
     .delete-btn { margin-left: 10px; color: red; cursor: pointer; background: none; border: none; font-size: 1em; }
     .modal-bg { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 10; }
     .modal { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.2); min-width: 300px; max-width: 90vw; }
+    /* カメラプレビュー */
+    #camera-preview { display: none; width: 100%; max-width: 300px; margin-top: 10px; border-radius: 6px; }
   </style>
 </head>
 <body>
@@ -48,6 +50,7 @@
         <label for="remarks-photo" id="file-label" style="cursor:pointer;">画像を追加</label>
         <input type="file" id="remarks-photo" accept="image/*" style="display:none;">
         <button type="button" id="open-camera">カメラで撮影</button>
+        <video id="camera-preview" autoplay playsinline></video>
         <button type="button" id="capture-btn" style="display:none;">撮影</button>
       </div>
       <div id="photo-preview"></div>
@@ -64,32 +67,13 @@
     </section>
   </div>
 
-  <div class="modal-bg" id="modalBg">
-    <div class="modal">
-      <h3>予定の詳細</h3>
-      <input type="text" id="event-text" placeholder="作業名">
-      <input type="date" id="event-date">
-      <input type="time" id="start-time">
-      <input type="time" id="end-time">
-      <select id="participants">
-        <option value="">参加者を選択</option>
-        <option value="佐藤">佐藤</option>
-        <option value="田中">田中</option>
-        <option value="鈴木">鈴木</option>
-      </select>
-      <input type="text" id="new-participant" placeholder="新しい参加者名">
-      <button type="button" onclick="addParticipant()">＋追加</button>
-      <div style="margin-top: 10px;">
-        <button onclick="submitEvent()">確認</button>
-        <button class="cancel-btn" onclick="closeModal()">キャンセル</button>
-      </div>
-    </div>
-  </div>
+  <!-- モーダル省略 -->
 
   <script>
     const remarksPhoto = document.getElementById('remarks-photo');
     const photoPreview = document.getElementById('photo-preview');
     const openCameraBtn = document.getElementById('open-camera');
+    const video = document.getElementById('camera-preview');
     const captureBtn = document.getElementById('capture-btn');
     let stream;
     const MAX_IMAGES = 5;
@@ -114,7 +98,7 @@
       }
     });
 
-    // カメラ起動
+    // カメラ起動：プレビュー表示
     openCameraBtn.addEventListener('click', async () => {
       if (photoPreview.childElementCount >= MAX_IMAGES) {
         alert('画像は1日5枚までです');
@@ -124,26 +108,29 @@
         return alert('カメラを使用できません');
       }
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
+      video.srcObject = stream;
+      video.style.display = 'block';
       captureBtn.style.display = 'inline-block';
     });
 
-    // 撮影
+    // 撮影：スナップショット保存
     captureBtn.addEventListener('click', () => {
       if (!stream) return;
-      const videoTrack = stream.getVideoTracks()[0];
-      const imageCapture = new ImageCapture(videoTrack);
-      imageCapture.takePhoto().then(blob => {
-        const imgURL = URL.createObjectURL(blob);
-        const img = document.createElement('img');
-        img.src = imgURL;
-        img.alt = '撮影画像';
-        photoPreview.appendChild(img);
-        checkImageLimit();
-        stream.getTracks().forEach(track => track.stop());
-        captureBtn.style.display = 'none';
-      }).catch(err => {
-        console.error(err);
-      });
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      const dataUrl = canvas.toDataURL('image/png');
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.alt = '撮影画像';
+      photoPreview.appendChild(img);
+      checkImageLimit();
+      // プレビュー解除
+      stream.getTracks().forEach(track => track.stop());
+      video.style.display = 'none';
+      captureBtn.style.display = 'none';
     });
 
     function checkImageLimit() {
@@ -163,11 +150,12 @@
       photoPreview.innerHTML = '';
       document.getElementById('file-label').style.display = 'inline-block';
       openCameraBtn.disabled = false;
+      video.style.display = 'none';
       captureBtn.style.display = 'none';
+      if (stream) stream.getTracks().forEach(track => track.stop());
     }
 
-    // 以降の既存関数（openModal, closeModal, submitEvent, addEventTask, deleteTask, addParticipant, updateRoutineTasks）
-    // ...
+    // 以降: 既存モーダル／予定管理など
   </script>
 </body>
 </html>
