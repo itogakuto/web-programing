@@ -5,12 +5,94 @@
   <title>たんぼメモ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    /* テーマ用CSS変数 */
+    :root {
+      --bg: #f5f7f9;
+      --text: #333;
+      --card-bg: #fff;
+      --primary: #4CAF50;
+      --primary-hover: #45a049;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --theme: white;
+      --heading: #446;
+      --calendar-bg: #fff;
+      --calendar-text: #333;
+      --calendar-today: #29b6f6;
+      --calendar-header: #446;
+      --hero-img: url('image117.jpg');
+    }
+    [data-theme="dark"] {
+      --bg: #181824;
+      --text: #f3f3f3;
+      --card-bg: #23243a;
+      --primary: #5f4dee;
+      --primary-hover: #4a39c7;
+      --shadow: rgba(0, 0, 0, 0.4);
+      --theme: #b3baff;
+      --heading: #b3baff;
+      --calendar-bg: #23243a;
+      --calendar-text: #f3f3f3;
+      --calendar-today: #5f4dee;
+      --calendar-header: #b3baff;
+      --hero-img: url('img_3245.jpg');
+    }
+
+    /* 全体の背景・文字色に適用 */
+    body {
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ボタンのスタイル */
+    .theme-toggle {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 1000;
+      padding: 10px 18px;
+      background: rgba(238, 238, 238, 0.85);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #333;
+      font-size: 1.3em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .theme-toggle:hover {
+      background: rgba(238, 238, 238, 1);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    }
     *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: sans-serif; background: #f5f7f9; margin: 0; padding: 0; color: #333; }
-    .hero { width: 100%; min-height: 200px; background: url('image117.jpg') center/cover no-repeat; display: flex; align-items: center; justify-content: center; color: white; font-size: 2em; font-weight: bold; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    .hero {
+      width: 100%;
+      min-height: 200px;
+      background: var(--hero-img) center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--theme);
+      font-size: 2em;
+      font-weight: bold;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
     .container { padding: 20px; }
-    section { background: white; border-radius: 12px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    h2 { margin-top: 0; color: #446; }
+    section {
+      background: var(--card-bg);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    h2 {
+      color: var(--heading);
+      margin-top: 0;
+    }
     input[type="date"], input[type="text"], input[type="time"], select, textarea { width: 100%; padding: 10px; margin: 6px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
     textarea { resize: vertical; margin-bottom: 10px; }
     #photo-preview img { max-width: 100px; margin: 6px; display: inline-block; border-radius: 6px; }
@@ -27,9 +109,13 @@
     .modal { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.2); width: 90%; max-width: 400px; }
     #camera-preview { display: none; width: 100%; max-width: 300px; margin-top: 10px; border-radius: 6px; }
     #calendar { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
-    .calendar-day { padding: 10px; background: #fff; border-radius: 4px; text-align: center; cursor: pointer; }
-    .calendar-day:hover { background: #e0f7fa; }
-    .today { background: #29b6f6; color: #fff; }
+    .calendar-day { padding: 10px; background: var(--calendar-bg); border-radius: 4px; text-align: center; cursor: pointer; }
+    .calendar-day:hover { background: var(--primary); color: #fff; }
+    .today { background: var(--calendar-today); color: #fff; }
+    #calendar .calendar-day[style*='font-weight: bold'] {
+      color: var(--calendar-header) !important;
+      background: none !important;
+    }
     #upcoming-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
     .card { background: #e3f2fd; padding: 10px; border-radius: 6px; }
     .popup { position: absolute; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 20; }
@@ -49,7 +135,10 @@
   </style>
 </head>
 <body>
-  <div class="hero">たんぼメモ</div>
+  <div class="hero">
+    たんぼメモ
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+  </div>
   <div class="container">
     <!-- 田植え日設定 -->
     <section>
@@ -140,6 +229,26 @@
         updateRoutineTasks();
       }
     }
+    // テーマ切替スクリプト
+    const themeToggle = document.getElementById('themeToggle');
+
+    function setTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      localStorage.setItem('tanbo_theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const current = document.body.getAttribute('data-theme');
+      setTheme(current === 'light' ? 'dark' : 'light');
+    });
+
+    // ページ読み込み時に保存されたテーマを適用
+    document.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('tanbo_theme') || 'light';
+      setTheme(saved);
+      // （ここで他の初期化処理を呼び出します）
+    });
 
     // Remarks/photos
     const remarksText = document.getElementById('remarks-text');
@@ -226,8 +335,106 @@
       const btn = document.createElement('button'); btn.textContent='削除'; btn.className='delete-btn';
       btn.onclick = () => deleteEvent(idx, li);
       li.appendChild(btn);
+      // 編集ボタンを追加
+      const editBtn = document.createElement('button');
+      editBtn.className = 'edit-btn';
+      editBtn.textContent = '✏️';
+      editBtn.onclick = () => openEditEventModal(idx);
+      li.appendChild(editBtn);
       eventListEl.appendChild(li);
     }
+
+    // グローバル参加者リスト
+    let globalParticipants = [];
+    // 初期化時に既存のselectから取得
+    function initGlobalParticipants() {
+      globalParticipants = Array.from(document.getElementById('participants').options)
+        .map(opt => opt.value).filter(v => v);
+    }
+    // 編集用の関数（参加者のみ編集可能）
+    function openEditEventModal(idx) {
+      const ev = eventTasks[idx];
+      // このイベントの参加者配列
+      let selectedParticipants = ev.participant.split(',').map(x=>x.trim()).filter(x=>x);
+      // モーダル生成
+      const modalBg = document.createElement('div');
+      modalBg.className = 'modal-bg';
+      modalBg.style.display = 'flex';
+      function renderParticipantsSelect() {
+        // 選択肢描画
+        const select = modalBg.querySelector('#edit-participants');
+        select.innerHTML = globalParticipants.map(name =>
+          `<option value="${name}" ${selectedParticipants.includes(name)?'selected':''}>${name}</option>`
+        ).join('');
+        // 選択中の参加者タグ＋削除ボタン
+        const delArea = modalBg.querySelector('#edit-participant-delete-area');
+        delArea.innerHTML = selectedParticipants.map((name, idx) =>
+          `<span style='display:inline-block;margin:2px 6px 2px 0;padding:2px 6px;background:#eee;border-radius:4px;'>${name} <button type='button' class='del-participant-btn' data-idx='${idx}' style='border:none;background:none;cursor:pointer;font-size:1em;'>🗑️</button></span>`
+        ).join('');
+        // 削除ボタンにイベント
+        delArea.querySelectorAll('.del-participant-btn').forEach(btn => {
+          btn.onclick = function() {
+            const i = Number(btn.getAttribute('data-idx'));
+            selectedParticipants.splice(i, 1);
+            renderParticipantsSelect();
+          };
+        });
+      }
+      modalBg.innerHTML = `
+        <div class="modal">
+          <h3>参加者を編集</h3>
+          <div id="edit-participant-delete-area" style="margin-bottom:8px;"></div>
+          <select id="edit-participants" multiple size="5" style="width:100%;margin-bottom:12px;"></select>
+          <input type="text" id="edit-new-participant" placeholder="新しい参加者名" style="width:100%;margin-bottom:8px;">
+          <button type="button" id="edit-add-participant">＋追加</button>
+          <div style="margin-top: 10px;">
+            <button id="edit-save">保存</button>
+            <button class="cancel-btn" id="edit-cancel">キャンセル</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modalBg);
+      renderParticipantsSelect();
+      // 追加ボタン
+      modalBg.querySelector('#edit-add-participant').onclick = function() {
+        const input = modalBg.querySelector('#edit-new-participant');
+        const name = input.value.trim();
+        if (name && !globalParticipants.includes(name)) {
+          globalParticipants.push(name);
+        }
+        if (name && !selectedParticipants.includes(name)) {
+          selectedParticipants.push(name);
+        }
+        renderParticipantsSelect();
+        // 追加した人を選択状態に
+        const select = modalBg.querySelector('#edit-participants');
+        for (let opt of select.options) {
+          if (opt.value === name) { opt.selected = true; break; }
+        }
+        input.value = '';
+      };
+      // selectの選択変更でselectedParticipantsを更新
+      modalBg.querySelector('#edit-participants').onchange = function(e) {
+        selectedParticipants = Array.from(e.target.selectedOptions).map(opt => opt.value);
+        renderParticipantsSelect();
+      };
+      // 保存ボタン
+      modalBg.querySelector('#edit-save').onclick = function() {
+        ev.participant = selectedParticipants.join(', ');
+        // 全体リストも更新
+        const selectEl = document.getElementById('participants');
+        selectEl.innerHTML = '<option value="">参加者を選択</option>' + globalParticipants.map(name => `<option value="${name}">${name}</option>`).join('');
+        saveEvents();
+        eventListEl.innerHTML = '';
+        eventTasks.forEach((ev, i) => renderEvent(ev, i));
+        modalBg.remove();
+      };
+      // キャンセルボタン
+      modalBg.querySelector('#edit-cancel').onclick = function() {
+        modalBg.remove();
+      };
+    }
+
     function toggleEventStatus(idx, li) {
       eventTasks[idx].completed = !eventTasks[idx].completed;
       saveEvents();
@@ -294,6 +501,7 @@
     // Init
     document.addEventListener('DOMContentLoaded',()=>{
       loadPlantingDate(); loadRemarks(); loadEvents(); renderCalendar();
+      initGlobalParticipants(); // 初期化時にグローバル参加者リストをセット
     });
 
   </script>
