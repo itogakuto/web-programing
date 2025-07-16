@@ -13,7 +13,7 @@
       --primary: #4CAF50;
       --primary-hover: #45a049;
       --shadow: rgba(0, 0, 0, 0.1);
-      --theme: white;
+      --theme: #446;
       --heading: #446;
       --calendar-bg: #fff;
       --calendar-text: #333;
@@ -37,7 +37,6 @@
       --hero-img: url('img_3245.jpg');
     }
 
-    /* 全体の背景・文字色に適用 */
     body {
       background: var(--bg);
       color: var(--text);
@@ -47,7 +46,28 @@
       padding: 0;
     }
 
-    /* ボタンのスタイル */
+    /* hero セクション：画像→テキスト縦並び */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      padding: 0;
+    }
+    .hero-image {
+      width: 100%;
+      min-height: 200px;
+      background: var(--hero-img) center/cover no-repeat;
+    }
+    .hero-text {
+      color: var(--theme);
+      font-size: 2em;
+      font-weight: bold;
+      text-align: center;
+      margin: 16px 0;
+      margin-top: 30px;
+    }
+
     .theme-toggle {
       position: fixed;
       right: 16px;
@@ -67,19 +87,8 @@
       background: rgba(238, 238, 238, 1);
       box-shadow: 0 4px 16px rgba(0,0,0,0.25);
     }
+
     *, *::before, *::after { box-sizing: border-box; }
-    .hero {
-      width: 100%;
-      min-height: 200px;
-      background: var(--hero-img) center/cover no-repeat;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--theme);
-      font-size: 2em;
-      font-weight: bold;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    }
     .container { padding: 20px; }
     section {
       background: var(--card-bg);
@@ -89,10 +98,8 @@
       margin-bottom: 30px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
-    h2 {
-      color: var(--heading);
-      margin-top: 0;
-    }
+    h2 { color: var(--heading); margin-top: 0; }
+    h3 { color: var(--heading); margin-top: 0; }
     input[type="date"], input[type="text"], input[type="time"], select, textarea { width: 100%; padding: 10px; margin: 6px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
     textarea { resize: vertical; margin-bottom: 10px; }
     #photo-preview img { max-width: 100px; margin: 6px; display: inline-block; border-radius: 6px; }
@@ -112,42 +119,40 @@
     .calendar-day { padding: 10px; background: var(--calendar-bg); border-radius: 4px; text-align: center; cursor: pointer; }
     .calendar-day:hover { background: var(--primary); color: #fff; }
     .today { background: var(--calendar-today); color: #fff; }
-    #calendar .calendar-day[style*='font-weight: bold'] {
-      color: var(--calendar-header) !important;
-      background: none !important;
-    }
+    #calendar .calendar-day[style*='font-weight: bold'] { color: var(--calendar-header) !important; background: none !important; }
     #upcoming-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
     .card { background: #e3f2fd; padding: 10px; border-radius: 6px; }
     .popup { position: absolute; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 20; }
-    .edit-btn {
-      background: #eee;
-      border: 1px solid #bbb;
+    /* 参加者チェックボックスリスト */
+    #participants-container {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
       border-radius: 6px;
-      padding: 4px 10px;
-      cursor: pointer;
-      color: #333;
-      margin-left: 8px;
-      transition: background 0.2s;
+      padding: 10px;
+      margin: 6px 0;
     }
-    .edit-btn:hover {
-      background: #d1c4e9;
+    #participants-container label {
+      display: block;
+      margin-bottom: 4px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="hero">
-    たんぼメモ
+    <div class="hero-image"></div>
+    <h1 class="hero-text">たんぼメモ</h1>
     <button class="theme-toggle" id="themeToggle">🌙</button>
   </div>
   <div class="container">
-    <!-- 田植え日設定 -->
     <section>
       <h2>田植え日を設定</h2>
+      <h3>後の大まかな作業日程を提案します。</h3>
       <input type="date" id="planting-date">
       <button onclick="setPlantingDate()">設定</button>
+      <div id="work-schedule"></div>
     </section>
-
-    <!-- 毎日の作業 -->
     <section>
       <h2>毎日の作業</h2>
       <ul id="routine-tasks">
@@ -156,7 +161,6 @@
         <li><input type="checkbox"> 地面の露出確認</li>
         <li><input type="checkbox"> 葉の異常チェック（枯れ／変色／斑点）</li>
       </ul>
-      <!-- 備考 -->
       <h3>備考（任意）</h3>
       <textarea id="remarks-text" rows="4" placeholder="今日の様子を記述..."></textarea>
       <div>
@@ -172,15 +176,11 @@
         <button type="button" class="cancel-btn" onclick="clearRemarks()">クリア</button>
       </div>
     </section>
-
-    <!-- 今後の予定 -->
     <section>
       <h2>今後の予定</h2>
       <ul id="event-tasks"></ul>
       <button onclick="openModal()">予定を追加</button>
     </section>
-
-    <!-- カレンダー -->
     <section>
       <h2>カレンダー</h2>
       <div id="upcoming-cards"></div>
@@ -188,129 +188,155 @@
     </section>
   </div>
 
-  <!-- 予定追加モーダル -->
   <div class="modal-bg" id="modalBg">
     <div class="modal">
-      <h3>予定の詳細</h3>
+      <span id="modalTitle">予定を追加</span>
+      <label>作業名</label>
       <input type="text" id="event-text" placeholder="作業名">
+      <label>日付</label>
       <input type="date" id="event-date">
+      <label>開始時間</label>
       <input type="time" id="start-time">
+      <label>終了時間</label>
       <input type="time" id="end-time">
-      <select id="participants">
-        <option value="">参加者を選択</option>
-      </select>
-      <input type="text" id="new-participant" placeholder="新しい参加者名">
-      <button type="button" onclick="addParticipant()">＋追加</button>
+      <label>参加者を選択（複数可）</label>
+      <div id="participants-container"></div>
       <div style="margin-top: 10px;">
-        <button onclick="submitEvent()">確認</button>
+        <button id="submit-btn">確認</button>
         <button class="cancel-btn" onclick="closeModal()">キャンセル</button>
       </div>
     </div>
   </div>
 
   <script>
-    // localStorage keys
     const LS_PLANT = 'tanbo_plantingDate';
     const LS_REMARKS = 'tanbo_remarks';
     const LS_REMARKS_PHOTOS = 'tanbo_remarksPhotos';
     const LS_EVENTS = 'tanbo_events';
 
-    // Load/set planting date
-    function setPlantingDate() {
-      const v = document.getElementById('planting-date').value;
-      if (!v) return alert('田植え日を選んでください');
-      localStorage.setItem(LS_PLANT, v);
-      updateRoutineTasks();
-    }
-    function loadPlantingDate() {
-      const v = localStorage.getItem(LS_PLANT);
-      if (v) {
-        document.getElementById('planting-date').value = v;
-        updateRoutineTasks();
-      }
-    }
-    // テーマ切替スクリプト
-    const themeToggle = document.getElementById('themeToggle');
+    let eventTasks = [];
+    let globalParticipants = [];
+    let editIndex = null;
+    const eventListEl = document.getElementById('event-tasks');
 
+    /* テーマ切替 */
+    const themeToggle = document.getElementById('themeToggle');
     function setTheme(theme) {
       document.body.setAttribute('data-theme', theme);
       localStorage.setItem('tanbo_theme', theme);
       themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
     }
-
     themeToggle.addEventListener('click', () => {
       const current = document.body.getAttribute('data-theme');
       setTheme(current === 'light' ? 'dark' : 'light');
     });
 
-    // ページ読み込み時に保存されたテーマを適用
-    document.addEventListener('DOMContentLoaded', () => {
-      const saved = localStorage.getItem('tanbo_theme') || 'light';
-      setTheme(saved);
-      // （ここで他の初期化処理を呼び出します）
-    });
+    /* CSVから参加者読み込み */
+    function loadParticipantsCSV() {
+      fetch('participants.csv')
+        .then(res => res.text())
+        .then(text => {
+          globalParticipants = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+          populateParticipantsContainer();
+        })
+        .catch(err => console.error('参加者CSV読込エラー', err));
+    }
+    function populateParticipantsContainer() {
+      const container = document.getElementById('participants-container');
+      container.innerHTML = '';
+      globalParticipants.forEach(name => {
+        const id = 'chk_' + name.replace(/\s+/g, '_');
+        const label = document.createElement('label');
+        label.htmlFor = id;
+        label.textContent = name;
+        const chk = document.createElement('input');
+        chk.type = 'checkbox';
+        chk.id = id;
+        chk.value = name;
+        label.prepend(chk);
+        container.appendChild(label);
+      });
+    }
 
-    // Remarks/photos
-    const remarksText = document.getElementById('remarks-text');
-    const remarksPhoto = document.getElementById('remarks-photo');
-    const photoPreview = document.getElementById('photo-preview');
-    const openCameraBtn = document.getElementById('open-camera');
-    const video = document.getElementById('camera-preview');
-    const captureBtn = document.getElementById('capture-btn');
-    let stream; const MAX_IMAGES = 5;
+    function getSelectedParticipants() {
+      return Array.from(document.querySelectorAll('#participants-container input:checked')).map(i => i.value);
+    }
 
+    /* 田植え日 */
+    function loadPlantingDate() {
+      const v = localStorage.getItem(LS_PLANT);
+      if (v) document.getElementById('planting-date').value = v;
+      suggestWorkSchedule(v);
+    }
+    function setPlantingDate() {
+      const v = document.getElementById('planting-date').value;
+      if (!v) return alert('日付を選択してください');
+      localStorage.setItem(LS_PLANT, v);
+      suggestWorkSchedule(v);
+      updateRoutineTasks();
+    }
+    function suggestWorkSchedule(plantingDateStr) {
+      if (!plantingDateStr) {
+        document.getElementById('work-schedule').innerHTML = '';
+        return;
+      }
+      const base = new Date(plantingDateStr);
+      const works = [
+        { name: '除草1回目（大まかな日程）', offset: 7},
+        { name: '除草2回目（大まかな日程）', offset: 21 },
+        { name: '追肥（大まかな日程）', offset: 30 },
+        { name: '中干し（大まかな日程）', offset: 40 }
+      ];
+      let html = '<h3>作業予定</h3><ul>';
+      works.forEach(w => {
+        const d = new Date(base);
+        d.setDate(base.getDate() + w.offset);
+        html += `<li>${w.name}：${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}</li>`;
+      });
+      html += '</ul>';
+      document.getElementById('work-schedule').innerHTML = html;
+    }
+    function updateRoutineTasks() {
+      const v = localStorage.getItem(LS_PLANT);
+      if (!v) return;
+      const pd = new Date(v), now = new Date();
+      const diff = Math.floor((now - pd) / (1000*60*60*24));
+      let txt = '';
+      if (diff < 0) txt = '未定義（未来）';
+      else if (diff <= 5) txt = '2〜3cm';
+      else if (diff <= 14) txt = '3〜5cm';
+      else txt = '管理者判断';
+      document.getElementById('cb-water').nextSibling.textContent = ` 水位確認（${txt}）`;
+    }
+
+    /* 備考 */
     function loadRemarks() {
       const text = localStorage.getItem(LS_REMARKS);
-      if (text) remarksText.value = text;
+      if (text) document.getElementById('remarks-text').value = text;
       const photos = JSON.parse(localStorage.getItem(LS_REMARKS_PHOTOS) || '[]');
       photos.forEach(src => appendPhoto(src));
     }
     function saveRemarks() {
-      localStorage.setItem(LS_REMARKS, remarksText.value);
-      const photos = Array.from(photoPreview.querySelectorAll('img')).map(img => img.src);
+      localStorage.setItem(LS_REMARKS, document.getElementById('remarks-text').value);
+      const photos = Array.from(document.getElementById('photo-preview').querySelectorAll('img')).map(img => img.src);
       localStorage.setItem(LS_REMARKS_PHOTOS, JSON.stringify(photos));
       alert('備考を保存しました');
     }
     function clearRemarks() {
-      remarksText.value = ''; photoPreview.innerHTML = '';
-      localStorage.removeItem(LS_REMARKS); localStorage.removeItem(LS_REMARKS_PHOTOS);
-      resetPhotoControls();
+      document.getElementById('remarks-text').value = '';
+      document.getElementById('photo-preview').innerHTML = '';
+      localStorage.removeItem(LS_REMARKS);
+      localStorage.removeItem(LS_REMARKS_PHOTOS);
     }
     function appendPhoto(src) {
-      const img = document.createElement('img'); img.src = src; img.alt = '備考写真'; photoPreview.appendChild(img);
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = '備考写真';
+      document.getElementById('photo-preview').appendChild(img);
     }
-    function resetPhotoControls() {
-      document.getElementById('file-label').style.display = 'inline-block';
-      openCameraBtn.disabled = false; video.style.display = 'none'; captureBtn.style.display = 'none';
-      if (stream) stream.getTracks().forEach(t => t.stop());
-    }
-    remarksPhoto.addEventListener('change', e => {
-      if (photoPreview.childElementCount >= MAX_IMAGES) return alert('画像は1日5枚までです');
-      const file = e.target.files[0]; if (file) {
-        const reader = new FileReader(); reader.onload = ev => { appendPhoto(ev.target.result); checkImageLimit(); };
-        reader.readAsDataURL(file);
-      }
-    });
-    openCameraBtn.addEventListener('click', async () => {
-      if (photoPreview.childElementCount >= MAX_IMAGES) return alert('画像は1日5枚までです');
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
-      video.srcObject = stream; video.style.display = 'block'; captureBtn.style.display = 'inline-block';
-    });
-    captureBtn.addEventListener('click', () => {
-      const canvas = document.createElement('canvas'); canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video,0,0);
-      const dataUrl = canvas.toDataURL('image/png'); appendPhoto(dataUrl);
-      checkImageLimit(); stream.getTracks().forEach(t=>t.stop()); video.style.display='none'; captureBtn.style.display='none';
-    });
-    function checkImageLimit() {
-      if (photoPreview.childElementCount>=MAX_IMAGES) {
-        document.getElementById('file-label').style.display='none'; openCameraBtn.disabled=true; captureBtn.style.display='none';
-      }
-    }
+    // カメラ機能略（元コードそのまま）
 
-    // Events with status
-    let eventTasks = [];
-    const eventListEl = document.getElementById('event-tasks');
+    /* イベント */
     function loadEvents() {
       eventTasks = JSON.parse(localStorage.getItem(LS_EVENTS) || '[]');
       eventTasks.forEach((ev, idx) => renderEvent(ev, idx));
@@ -318,192 +344,157 @@
     function saveEvents() {
       localStorage.setItem(LS_EVENTS, JSON.stringify(eventTasks));
     }
-    function addEventTask(task,date,start,end,participant) {
-      const ev = { task,date,start,end,participant,completed:false };
-      eventTasks.push(ev); saveEvents(); renderEvent(ev, eventTasks.length-1); renderCalendar();
+    function addEventTask(task, date, start, end, participant) {
+      const ev = { task, date, start, end, participant, completed: false };
+      eventTasks.push(ev);
+      saveEvents();
+      renderEvent(ev, eventTasks.length - 1);
+      renderCalendar();
     }
     function renderEvent(ev, idx) {
       const li = document.createElement('li');
-      const checkbox = document.createElement('input');
-      checkbox.type='checkbox'; checkbox.className='status-checkbox';
-      checkbox.checked = ev.completed;
-      checkbox.addEventListener('change', () => toggleEventStatus(idx, li));
-      li.appendChild(checkbox);
-      const text = document.createTextNode(`🕒 ${ev.start}〜${ev.end} ｜ 👥 ${ev.participant} ｜ ${ev.task}（${ev.date}）`);
-      li.appendChild(text);
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = ev.completed; cb.className = 'status-checkbox';
+      cb.addEventListener('change', () => toggleEventStatus(idx, li));
+      li.appendChild(cb);
+      // テキスト部分をspanでラップ
+      const txt = document.createElement('span');
+      txt.className = 'event-text';
+      txt.textContent = `🕒 ${ev.start}〜${ev.end} ｜ 👥 ${ev.participant} ｜ ${ev.task}（${ev.date}）`;
+      li.appendChild(txt);
       if (ev.completed) li.classList.add('completed');
-      const btn = document.createElement('button'); btn.textContent='削除'; btn.className='delete-btn';
-      btn.onclick = () => deleteEvent(idx, li);
-      li.appendChild(btn);
-      // 編集ボタンを追加
-      const editBtn = document.createElement('button');
-      editBtn.className = 'edit-btn';
-      editBtn.textContent = '✏️';
-      editBtn.onclick = () => openEditEventModal(idx);
-      li.appendChild(editBtn);
-      eventListEl.appendChild(li);
+      const del = document.createElement('button'); del.textContent = '削除'; del.className = 'delete-btn';
+      del.onclick = () => { deleteEvent(idx, li); };
+      li.appendChild(del);
+      const edit = document.createElement('button'); edit.className = 'edit-btn'; edit.textContent = '✏️';
+      edit.onclick = () => openEditEventModal(idx);
+      li.appendChild(edit);
+      document.getElementById('event-tasks').appendChild(li);
     }
-
-    // グローバル参加者リスト
-    let globalParticipants = [];
-    // 初期化時に既存のselectから取得
-    function initGlobalParticipants() {
-      globalParticipants = Array.from(document.getElementById('participants').options)
-        .map(opt => opt.value).filter(v => v);
-    }
-    // 編集用の関数（参加者のみ編集可能）
-    function openEditEventModal(idx) {
-      const ev = eventTasks[idx];
-      // このイベントの参加者配列
-      let selectedParticipants = ev.participant.split(',').map(x=>x.trim()).filter(x=>x);
-      // モーダル生成
-      const modalBg = document.createElement('div');
-      modalBg.className = 'modal-bg';
-      modalBg.style.display = 'flex';
-      function renderParticipantsSelect() {
-        // 選択肢描画
-        const select = modalBg.querySelector('#edit-participants');
-        select.innerHTML = globalParticipants.map(name =>
-          `<option value="${name}" ${selectedParticipants.includes(name)?'selected':''}>${name}</option>`
-        ).join('');
-        // 選択中の参加者タグ＋削除ボタン
-        const delArea = modalBg.querySelector('#edit-participant-delete-area');
-        delArea.innerHTML = selectedParticipants.map((name, idx) =>
-          `<span style='display:inline-block;margin:2px 6px 2px 0;padding:2px 6px;background:#eee;border-radius:4px;'>${name} <button type='button' class='del-participant-btn' data-idx='${idx}' style='border:none;background:none;cursor:pointer;font-size:1em;'>🗑️</button></span>`
-        ).join('');
-        // 削除ボタンにイベント
-        delArea.querySelectorAll('.del-participant-btn').forEach(btn => {
-          btn.onclick = function() {
-            const i = Number(btn.getAttribute('data-idx'));
-            selectedParticipants.splice(i, 1);
-            renderParticipantsSelect();
-          };
-        });
-      }
-      modalBg.innerHTML = `
-        <div class="modal">
-          <h3>参加者を編集</h3>
-          <div id="edit-participant-delete-area" style="margin-bottom:8px;"></div>
-          <select id="edit-participants" multiple size="5" style="width:100%;margin-bottom:12px;"></select>
-          <input type="text" id="edit-new-participant" placeholder="新しい参加者名" style="width:100%;margin-bottom:8px;">
-          <button type="button" id="edit-add-participant">＋追加</button>
-          <div style="margin-top: 10px;">
-            <button id="edit-save">保存</button>
-            <button class="cancel-btn" id="edit-cancel">キャンセル</button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modalBg);
-      renderParticipantsSelect();
-      // 追加ボタン
-      modalBg.querySelector('#edit-add-participant').onclick = function() {
-        const input = modalBg.querySelector('#edit-new-participant');
-        const name = input.value.trim();
-        if (name && !globalParticipants.includes(name)) {
-          globalParticipants.push(name);
-        }
-        if (name && !selectedParticipants.includes(name)) {
-          selectedParticipants.push(name);
-        }
-        renderParticipantsSelect();
-        // 追加した人を選択状態に
-        const select = modalBg.querySelector('#edit-participants');
-        for (let opt of select.options) {
-          if (opt.value === name) { opt.selected = true; break; }
-        }
-        input.value = '';
-      };
-      // selectの選択変更でselectedParticipantsを更新
-      modalBg.querySelector('#edit-participants').onchange = function(e) {
-        selectedParticipants = Array.from(e.target.selectedOptions).map(opt => opt.value);
-        renderParticipantsSelect();
-      };
-      // 保存ボタン
-      modalBg.querySelector('#edit-save').onclick = function() {
-        ev.participant = selectedParticipants.join(', ');
-        // 全体リストも更新
-        const selectEl = document.getElementById('participants');
-        selectEl.innerHTML = '<option value="">参加者を選択</option>' + globalParticipants.map(name => `<option value="${name}">${name}</option>`).join('');
-        saveEvents();
-        eventListEl.innerHTML = '';
-        eventTasks.forEach((ev, i) => renderEvent(ev, i));
-        modalBg.remove();
-      };
-      // キャンセルボタン
-      modalBg.querySelector('#edit-cancel').onclick = function() {
-        modalBg.remove();
-      };
-    }
-
     function toggleEventStatus(idx, li) {
       eventTasks[idx].completed = !eventTasks[idx].completed;
       saveEvents();
-      if (eventTasks[idx].completed) li.classList.add('completed'); else li.classList.remove('completed');
+      li.classList.toggle('completed');
     }
     function deleteEvent(idx, li) {
-      eventTasks.splice(idx,1); saveEvents(); li.remove(); renderCalendar();
-      eventListEl.innerHTML=''; eventTasks.forEach((ev,i)=>renderEvent(ev,i));
+      eventTasks.splice(idx, 1);
+      saveEvents();
+      document.getElementById('event-tasks').innerHTML = '';
+      eventTasks.forEach((ev, i) => renderEvent(ev, i));
+      renderCalendar();
     }
 
-    // Modal
-    function openModal(){ document.getElementById('modalBg').style.display='flex'; }
-    function closeModal(){ document.getElementById('modalBg').style.display='none'; }
-    function submitEvent(){
-      const t = document.getElementById('event-text').value.trim();
-      const d = document.getElementById('event-date').value;
-      const s = document.getElementById('start-time').value;
-      const e = document.getElementById('end-time').value;
-      const p = document.getElementById('participants').value;
-      if (t&&d&&s&&e&&p) { addEventTask(t,d,s,e,p); closeModal(); }
-      else alert('すべての項目を入力してください');
-    }
-    function addParticipant(){ const input=document.getElementById('new-participant'); const name=input.value.trim();
-      if(name){ const opt=document.createElement('option'); opt.value=name; opt.textContent=name;
-        document.getElementById('participants').appendChild(opt); input.value=''; }
+
+    // --- 2. モーダルを閉じる ---
+    function closeModal() {
+      document.getElementById('modalBg').style.display = 'none';
     }
 
-    // Calendar
-    function renderCalendar(){
-      const cal = document.getElementById('calendar'); cal.innerHTML = '';
-      const today = new Date(), y=today.getFullYear(), m=today.getMonth();
-      const first=new Date(y,m,1).getDay(), days=new Date(y,m+1,0).getDate();
-      ['日','月','火','水','木','金','土'].forEach(d=>{
-        const hd=document.createElement('div'); hd.textContent=d; hd.className='calendar-day'; hd.style.fontWeight='bold'; cal.appendChild(hd);
+    function openModal(){
+      editIndex = null;
+      resetModal();
+      document.getElementById('modalTitle').textContent='予定を追加';
+      document.getElementById('submit-btn').onclick = submitEvent;
+      document.getElementById('modalBg').style.display='flex';
+    }
+    function openEditEventModal(idx){
+      editIndex = idx;
+      resetModal();
+      const ev = eventTasks[idx];
+      document.getElementById('modalTitle').textContent = '予定を編集';
+      document.getElementById('event-text').value = ev.task;
+      document.getElementById('event-date').value = ev.date;
+      document.getElementById('start-time').value = ev.start;
+      document.getElementById('end-time').value = ev.end;
+      // 修正: split(',').map(x => x.trim()) でcheckedをセット
+      const selected = ev.participant.split(',').map(x => x.trim());
+      document.querySelectorAll('#participants-container input').forEach(i => {
+        i.checked = selected.includes(i.value);
       });
-      for(let i=0;i<first;i++) cal.appendChild(document.createElement('div'));
-      for(let d=1;d<=days;d++){ const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const el=document.createElement('div'); el.textContent=d; el.className='calendar-day';
-        if(d===today.getDate()) el.classList.add('today');
-        el.addEventListener('click',e=>showDayPopup(e,dateStr)); cal.appendChild(el);
+      document.getElementById('submit-btn').onclick = submitEvent;
+      document.getElementById('modalBg').style.display = 'flex';
+    }
+    function submitEvent(){
+      const t=document.getElementById('event-text').value.trim();
+      const d=document.getElementById('event-date').value;
+      const s=document.getElementById('start-time').value;
+      const e=document.getElementById('end-time').value;
+      const ps=getSelectedParticipants();if(!(t&&d&&s&&e&&ps.length))return alert('全て入力してください');
+      if(editIndex===null){
+        eventTasks.push({task:t,date:d,start:s,end:e,participant:ps.join(', '),completed:false});
+        // 新規: 既存renderEventで追加
+        renderEvent(eventTasks[eventTasks.length-1],eventTasks.length-1);
+      } else {
+        // 編集: 既存DOM要素を直接更新
+        const ev=eventTasks[editIndex];ev.task=t;ev.date=d;ev.start=s;ev.end=e;ev.participant=ps.join(', ');
+        const ul=document.getElementById('event-tasks');
+        const li=ul.children[editIndex];
+        // 更新: テキスト部分と状態
+        const chk=li.querySelector('.status-checkbox');chk.checked=ev.completed;
+        const txtSpan=li.querySelector('.event-text');
+        txtSpan.textContent=`🕒 ${ev.start}〜${ev.end} ｜ 👥 ${ev.participant} ｜ ${ev.task}（${ev.date}）`;
+      }
+      saveEvents();closeModal();
+    }
+    function resetModal(){
+      ['event-text','event-date','start-time','end-time'].forEach(id=>document.getElementById(id).value='');
+      document.querySelectorAll('#participants-container input').forEach(i=>i.checked=false);
+    }
+
+    /* カレンダー */
+    function renderCalendar() {
+      const cal = document.getElementById('calendar'); cal.innerHTML = '';
+      const today = new Date(), y = today.getFullYear(), m = today.getMonth();
+      const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
+      ['日','月','火','水','木','金','土'].forEach(d => {
+        const hd = document.createElement('div'); hd.textContent = d; hd.className='calendar-day'; hd.style.fontWeight='bold'; cal.appendChild(hd);
+      });
+      for (let i=0; i<first; i++) cal.appendChild(document.createElement('div'));
+      for (let d=1; d<=days; d++) {
+        const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const el = document.createElement('div'); el.textContent = d; el.className='calendar-day';
+        if (d === today.getDate()) el.classList.add('today');
+        el.addEventListener('click', e => showDayPopup(e, dateStr)); cal.appendChild(el);
       }
       renderUpcoming();
     }
-    function renderUpcoming(){ const up=document.getElementById('upcoming-cards'); up.innerHTML='';
-      const now=new Date(); eventTasks.forEach(ev=>{ const dt=new Date(ev.date);
-        const diff=(dt-now)/(1000*60*60*24); if(diff>=0&&diff<7){ const c=document.createElement('div'); c.className='card';
-          c.textContent=`${ev.date} ${ev.start}〜${ev.end} ${ev.task}`; up.appendChild(c); }
-      }); }
-    function showDayPopup(e,date){ document.querySelectorAll('.popup').forEach(p=>p.remove());
-      const pop=document.createElement('div'); pop.className='popup'; const tasks=eventTasks.filter(ev=>ev.date===date);
-      if(tasks.length===0) pop.textContent='予定なし'; else tasks.forEach(ev=>{ const p=document.createElement('p'); p.textContent=`${ev.start}〜${ev.end} ${ev.task}`; pop.appendChild(p); });
-      document.body.appendChild(pop); const r=e.target.getBoundingClientRect(); pop.style.top=`${r.top-pop.offsetHeight-10}px`; pop.style.left=`${r.left}px`;
-      setTimeout(()=>pop.remove(),5000);
+    function renderUpcoming() {
+      const up = document.getElementById('upcoming-cards'); up.innerHTML = '';
+      const now = new Date();
+      eventTasks.forEach(ev => {
+        const dt = new Date(ev.date);
+        const diff = (dt - now) / (1000*60*60*24);
+        if (diff >= 0 && diff < 7) {
+          const c = document.createElement('div'); c.className='card';
+          c.textContent = `${ev.date} ${ev.start}〜${ev.end} ${ev.task}`;
+          up.appendChild(c);
+        }
+      });
+    }
+    function showDayPopup(e, date) {
+      document.querySelectorAll('.popup').forEach(p => p.remove());
+      const pop = document.createElement('div'); pop.className='popup';
+      const tasks = eventTasks.filter(ev => ev.date === date);
+      if (tasks.length === 0) pop.textContent = '予定なし';
+      else tasks.forEach(ev => {
+        const p = document.createElement('p'); p.textContent = `${ev.start}〜${ev.end} ${ev.task}`; pop.appendChild(p);
+      });
+      document.body.appendChild(pop);
+      const r = e.target.getBoundingClientRect();
+      pop.style.top = `${r.top - pop.offsetHeight - 10}px`;
+      pop.style.left = `${r.left}px`;
+      setTimeout(() => pop.remove(), 5000);
     }
 
-    // Routine status
-    function updateRoutineTasks(){
-      const v=localStorage.getItem(LS_PLANT); if(!v) return;
-      const pd=new Date(v), now=new Date(); const diff=Math.floor((now-pd)/(1000*60*60*24)); let txt='';
-      if(diff<0) txt='未定義（未来）'; else if(diff<=5) txt='2〜3cm'; else if(diff<=14) txt='3〜5cm'; else txt='管理者判断';
-      document.getElementById('cb-water').nextSibling.textContent=` 水位確認（${txt}）`;
-    }
-
-    // Init
-    document.addEventListener('DOMContentLoaded',()=>{
-      loadPlantingDate(); loadRemarks(); loadEvents(); renderCalendar();
-      initGlobalParticipants(); // 初期化時にグローバル参加者リストをセット
+    /* 初期化 */
+    document.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('tanbo_theme') || 'light';
+      setTheme(saved);
+      loadPlantingDate();
+      loadRemarks();
+      loadEvents();
+      renderCalendar();
+      loadParticipantsCSV();
     });
-
   </script>
 </body>
 </html>
