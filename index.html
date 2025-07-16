@@ -124,7 +124,10 @@
     #upcoming-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
     .card { background: #e3f2fd; padding: 10px; border-radius: 6px; }
     .popup { position: absolute; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 20; }
-    [data-theme="dark"] .popup { color: #446; background: #fff; }
+    [data-theme="dark"] .popup {
+      color: #446 !important;
+      background: #fff !important;
+    }
     /* 参加者チェックボックスリスト */
     #participants-container {
       max-height: 200px;
@@ -138,6 +141,10 @@
       display: block;
       margin-bottom: 4px;
       cursor: pointer;
+    }
+    [data-theme="dark"] .card {
+      color: #446 !important;
+      background: #fff !important;
     }
   </style>
 </head>
